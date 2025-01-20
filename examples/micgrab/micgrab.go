@@ -1,3 +1,5 @@
+//go:build !ignore
+
 package main
 
 import (
@@ -6,7 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/gen2brain/aac-go"
+	"github.com/aginetwork7/aac-go"
 	"github.com/gen2brain/malgo"
 )
 
