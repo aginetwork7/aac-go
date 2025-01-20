@@ -1,4 +1,4 @@
-module github.com/gen2brain/aac-go
+module github.com/aginetwork7/aac-go
 
 go 1.19
 
