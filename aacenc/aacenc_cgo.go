@@ -30,7 +30,14 @@ package aacenc
 #include "external/aacenc/src/stat_bits.c"
 #include "external/aacenc/src/tns.c"
 #include "external/aacenc/src/transform.c"
-
+#ifdef __linux__
+#include "external/aacenc/src/AutoCorrelation_v5.s"
+#include "external/aacenc/src/CalcWindowEnergy_v5.s"
+#include "external/aacenc/src/band_nrg_v5.s"
+#include "external/aacenc/src/PrePostMDCT_v7.s"
+#include "external/aacenc/src/R4R8First_v7.s"
+#include "external/aacenc/src/Radix4FFT_v7.s"
+#endif
 #cgo CFLAGS: -std=gnu99 -Iexternal/aacenc/include -DUSE_DEFAULT_MEM
 */
 import "C"
