@@ -271,6 +271,7 @@ __inline Word32 ASM_shl(Word32 L_var1, Word32 var2)
 		:[L_var1]"r"(L_var1), [var2]"r"(var2)
 		:"cc"
 		);
+    fprintf(stderr, "ASM_shl ARMV6_SAT\n");
 	return result;
 #else
 	Word32 result;
@@ -286,6 +287,7 @@ __inline Word32 ASM_shl(Word32 L_var1, Word32 var2)
 		:[L_var1]"r"(L_var1), [var2]"r"(var2), [mask]"r"(0x7fff)
 		:"cc"
 		);
+    fprintf(stderr, "ASM_shl\n");
 	return result;
 #endif
 }
