@@ -1,6 +1,11 @@
+//go:build !ignore
+
 package aacenc
 
 /*
+#cgo linux CFLAGS: -std=gnu99 -Iexternal/aacenc/include -I/opt/armv7l-linux-musleabihf-cross/armv7l-linux-musleabihf/include -DUSE_DEFAULT_MEM -DARMV5E -DARMV7Neon -DARM_INASM -DARMV5_INASM -DARMV6_INASM -march=armv7-a -mfpu=neon -Wall
+#cgo linux LDFLAGS: -mfpu=neon -L/opt/armv7l-linux-musleabihf-cross/armv7l-linux-musleabihf/lib
+#cgo darwin CFLAGS: -std=gnu99 -Iexternal/aacenc/include -DUSE_DEFAULT_MEM -Wall
 #include "external/aacenc/src/cmnMemory.c"
 #include "external/aacenc/src/basicop2.c"
 #include "external/aacenc/src/oper_32b.c"
@@ -31,13 +36,12 @@ package aacenc
 #include "external/aacenc/src/tns.c"
 #include "external/aacenc/src/transform.c"
 #ifdef __linux__
-#include "external/aacenc/src/AutoCorrelation_v5.s"
-#include "external/aacenc/src/CalcWindowEnergy_v5.s"
-#include "external/aacenc/src/band_nrg_v5.s"
-#include "external/aacenc/src/PrePostMDCT_v7.s"
-#include "external/aacenc/src/R4R8First_v7.s"
-#include "external/aacenc/src/Radix4FFT_v7.s"
+	#include "external/aacenc/src/AutoCorrelation_v5.s"
+	#include "external/aacenc/src/CalcWindowEnergy_v5.s"
+	#include "external/aacenc/src/band_nrg_v5.s"
+	#include "external/aacenc/src/PrePostMDCT_v7.s"
+	#include "external/aacenc/src/R4R8First_v7.s"
+	#include "external/aacenc/src/Radix4FFT_v7.s"
 #endif
-#cgo CFLAGS: -std=gnu99 -Iexternal/aacenc/include -DUSE_DEFAULT_MEM
 */
 import "C"

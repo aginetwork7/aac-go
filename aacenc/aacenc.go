@@ -1,3 +1,5 @@
+//go:build !ignore
+
 // Package aacenc implements cgo bindings for VisualOn AAC encoder library.
 package aacenc
 

@@ -1,3 +1,5 @@
+//go:build !ignore
+
 // Package aac provides AAC codec encoder based on VisualOn AAC encoder library.
 package aac
 
