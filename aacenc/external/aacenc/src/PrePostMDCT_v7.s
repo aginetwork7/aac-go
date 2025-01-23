@@ -20,21 +20,12 @@
 @	Content:	premdct and postmdct function armv7 assemble
 @
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-.section .data
-message_entering_PreMDCT:
-    .asciz "Entering PreMDCT...\n"  // Null-terminated string
 
 	.section .text
 	.global	PreMDCT
 	.fnstart
 
 PreMDCT:
- // Load the address of the message into r0
-    ldr r0, =message_entering_PreMDCT  // Load address of message
-    mov r1, #1                         // File descriptor 1 = STDOUT
-    mov r2, #18                        // Length of the string (number of characters)
-    swi 0                               // Trigger the system call (write)
-
 	stmdb     sp!, {r4 - r11, lr}
 	.save	  {r4 - r11, lr}
 	fstmfdd   sp!, {d8 - d15}
