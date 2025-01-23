@@ -3,8 +3,8 @@
 package aacenc
 
 /*
-#cgo linux CFLAGS: -std=gnu99 -Iexternal/aacenc/include -I/opt/armv7l-linux-musleabihf-cross/armv7l-linux-musleabihf/include -DUSE_DEFAULT_MEM -DARMV5E -DARMV7Neon -DARM_INASM -DARMV5_INASM -DARMV6_INASM -march=armv7-a -mfpu=neon -Wall
-#cgo linux LDFLAGS: -mfpu=neon -L/opt/armv7l-linux-musleabihf-cross/armv7l-linux-musleabihf/lib
+#cgo linux CFLAGS: -std=gnu99 -Iexternal/aacenc/include -DUSE_DEFAULT_MEM -DARMV5E -DARMV7Neon -DARM_INASM -DARMV5_INASM -DARMV6_INASM -march=armv7-a -mfpu=neon -Wall -D__ARM_ARCH_7A__
+#cgo linux LDFLAGS: -mfpu=neon -L. -l:AutoCorrelation_v5.o -l:CalcWindowEnergy_v5.o -l:band_nrg_v5.o -l:PrePostMDCT_v7.o -l:R4R8First_v7.o -l:Radix4FFT_v7.o
 #cgo darwin CFLAGS: -std=gnu99 -Iexternal/aacenc/include -DUSE_DEFAULT_MEM -Wall
 #include "external/aacenc/src/cmnMemory.c"
 #include "external/aacenc/src/basicop2.c"
@@ -35,13 +35,5 @@ package aacenc
 #include "external/aacenc/src/stat_bits.c"
 #include "external/aacenc/src/tns.c"
 #include "external/aacenc/src/transform.c"
-#ifdef __linux__
-	#include "external/aacenc/src/AutoCorrelation_v5.s"
-	#include "external/aacenc/src/CalcWindowEnergy_v5.s"
-	#include "external/aacenc/src/band_nrg_v5.s"
-	#include "external/aacenc/src/PrePostMDCT_v7.s"
-	#include "external/aacenc/src/R4R8First_v7.s"
-	#include "external/aacenc/src/Radix4FFT_v7.s"
-#endif
 */
 import "C"
