@@ -3,8 +3,8 @@
 package aacenc
 
 /*
-#cgo linux CFLAGS: -std=gnu99 -Iexternal/aacenc/include -DUSE_DEFAULT_MEM -DARMV5E -DARMV7Neon -DARM_INASM -DARMV5_INASM -DARMV6_INASM -march=armv7-a -mfpu=neon -Wall -D__ARM_ARCH_7A__
-#cgo linux LDFLAGS: -mfpu=neon -L. -l:AutoCorrelation_v5.o -l:CalcWindowEnergy_v5.o -l:band_nrg_v5.o -l:PrePostMDCT_v7.o -l:R4R8First_v7.o -l:Radix4FFT_v7.o
+#cgo linux CFLAGS: -std=gnu99 -Iexternal/aacenc/include -DUSE_DEFAULT_MEM -DARMV5E -DARMV7Neon -DARM_INASM -DARMV5_INASM -DARMV6_INASM -march=armv7-a -mthumb-interwork -mfloat-abi=hard -mfpu=neon -Wall -D__ARM_ARCH_7A__
+#cgo linux LDFLAGS: -mfloat-abi=hard -mfpu=neon -L. -l:AutoCorrelation_v5.o -l:CalcWindowEnergy_v5.o -l:band_nrg_v5.o -l:PrePostMDCT_v7.o -l:R4R8First_v7.o -l:Radix4FFT_v7.o
 #cgo darwin CFLAGS: -std=gnu99 -Iexternal/aacenc/include -DUSE_DEFAULT_MEM -Wall
 #include "external/aacenc/src/cmnMemory.c"
 #include "external/aacenc/src/basicop2.c"
