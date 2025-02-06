@@ -94,8 +94,6 @@ func NewEncoderV2(opts *Options) (*Encoder, error) {
 		return nil, fmt.Errorf("aac: %w", err)
 	}
 
-	e.outbuf = make([]byte, 20480)
-
 	return e, nil
 }
 
@@ -165,22 +163,28 @@ func (e *Encoder) EncodeOneFrame(inbuf []byte) ([][]byte, error) {
 	ret := aacenc.SetInputData(&input)
 	err := aacenc.ErrorFromResult(ret)
 	if err != nil {
+		C.free(input.Buffer)
 		return nil, fmt.Errorf("aac: %w", err)
 	}
-
-	outputEmpty := false
+	const bufferSize = 20480
 	var outDataList [][]byte
-	for !outputEmpty {
-		output.Buffer = C.CBytes(e.outbuf)
-		output.Length = uint64(len(e.outbuf))
+	for {
+		output.Buffer = C.malloc(C.size_t(bufferSize))
+		if output.Buffer == nil {
+			C.free(input.Buffer)
+			return nil, fmt.Errorf("aac: memory allocation failed")
+		}
+		output.Length = uint64(bufferSize)
 
 		ret = aacenc.GetOutputData(&output, &outinfo)
 		err = aacenc.ErrorFromResult(ret)
 		if err != nil {
+			C.free(output.Buffer)
 			if !errors.Is(err, aacenc.ErrInputBufferSmall) {
+				C.free(input.Buffer)
 				return nil, fmt.Errorf("aac: %w", err)
 			}
-			outputEmpty = true
+			break
 		}
 
 		outData := C.GoBytes(output.Buffer, C.int(output.Length))

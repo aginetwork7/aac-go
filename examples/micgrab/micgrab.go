@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/aginetwork7/aac-go"
+	"github.com/gen2brain/aac-go"
 	"github.com/gen2brain/malgo"
 )
 
