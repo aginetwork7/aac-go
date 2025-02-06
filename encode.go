@@ -1,5 +1,7 @@
 //go:build !ignore
 
+//nolint:goanalysis_metalinter
+
 // Package aac provides AAC codec encoder based on VisualOn AAC encoder library.
 package aac
 
@@ -94,8 +96,6 @@ func NewEncoderV2(opts *Options) (*Encoder, error) {
 		return nil, fmt.Errorf("aac: %w", err)
 	}
 
-	e.outbuf = make([]byte, 20480)
-
 	return e, nil
 }
 
@@ -160,35 +160,37 @@ func (e *Encoder) EncodeOneFrame(inbuf []byte) ([][]byte, error) {
 	var input, output aacenc.VoCodecBuffer
 
 	input.Buffer = C.CBytes(inbuf)
+	if input.Buffer == nil {
+		return nil, fmt.Errorf("aac: memory allocation failed")
+	}
+	defer C.free(input.Buffer)
 	input.Length = uint64(len(inbuf))
-
 	ret := aacenc.SetInputData(&input)
 	err := aacenc.ErrorFromResult(ret)
 	if err != nil {
 		return nil, fmt.Errorf("aac: %w", err)
 	}
-
-	outputEmpty := false
+	const bufferSize = 20480
 	var outDataList [][]byte
-	for !outputEmpty {
-		output.Buffer = C.CBytes(e.outbuf)
-		output.Length = uint64(len(e.outbuf))
-
+	output.Buffer = C.malloc(C.size_t(bufferSize))
+	if output.Buffer == nil {
+		return nil, fmt.Errorf("aac: memory allocation failed")
+	}
+	defer C.free(output.Buffer)
+	for {
+		output.Length = bufferSize
 		ret = aacenc.GetOutputData(&output, &outinfo)
 		err = aacenc.ErrorFromResult(ret)
 		if err != nil {
 			if !errors.Is(err, aacenc.ErrInputBufferSmall) {
 				return nil, fmt.Errorf("aac: %w", err)
 			}
-			outputEmpty = true
+			break
 		}
 
 		outData := C.GoBytes(output.Buffer, C.int(output.Length))
 		outDataList = append(outDataList, outData)
-		C.free(output.Buffer)
 	}
-
-	C.free(input.Buffer)
 
 	return outDataList, nil
 }
