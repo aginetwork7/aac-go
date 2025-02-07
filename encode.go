@@ -154,7 +154,7 @@ func (e *Encoder) Encode(r io.Reader) error {
 	return nil
 }
 
-// Encode encodes data from reader.
+// Encode encodes data from inbuf.
 func (e *Encoder) EncodeOneFrame(inbuf []byte) ([][]byte, error) {
 	var outinfo aacenc.VoAudioOutputinfo
 	var input, output aacenc.VoCodecBuffer
