@@ -8,6 +8,7 @@ import "C"
 
 import (
 	"errors"
+	"sync"
 	"unsafe"
 )
 
@@ -208,7 +209,11 @@ type Param struct {
 	AdtsUsed int16
 }
 
-var handle C.VO_HANDLE
+var (
+	handleMap  = make(map[int]C.VO_HANDLE)
+	handleMu   sync.RWMutex
+	nextHandle = 0
+)
 
 // Errors.
 var (
@@ -267,16 +272,24 @@ func ErrorFromResult(r uint) error {
 }
 
 // Init - init the audio codec module and return codec handle.
-func Init(vtype int32) uint {
+func Init(vtype int32) (int, uint) {
 	cvtype := (C.VO_AUDIO_CODINGTYPE)(vtype)
+	var handle C.VO_HANDLE
 	ret := C.voAACEncInit(&handle, cvtype, nil)
+	handleMu.Lock()
+	handleID := nextHandle
+	handleMap[nextHandle] = handle
+	nextHandle++
+	handleMu.Unlock()
 	v := (uint)(ret)
-
-	return v
+	return handleID, v
 }
 
 // SetInputData - set input audio data.
-func SetInputData(pinput *VoCodecBuffer) uint {
+func SetInputData(handleID int, pinput *VoCodecBuffer) uint {
+	handleMu.RLock()
+	handle := handleMap[handleID]
+	handleMu.RUnlock()
 	cpinput := pinput.cptr()
 	ret := C.voAACEncSetInputData(handle, cpinput)
 	v := (uint)(ret)
@@ -285,7 +298,10 @@ func SetInputData(pinput *VoCodecBuffer) uint {
 }
 
 // GetOutputData - get the outut audio data.
-func GetOutputData(poutbuffer *VoCodecBuffer, poutinfo *VoAudioOutputinfo) uint {
+func GetOutputData(handleID int, poutbuffer *VoCodecBuffer, poutinfo *VoAudioOutputinfo) uint {
+	handleMu.RLock()
+	handle := handleMap[handleID]
+	handleMu.RUnlock()
 	cpoutbuffer := poutbuffer.cptr()
 	cpoutinfo := poutinfo.cptr()
 	ret := C.voAACEncGetOutputData(handle, cpoutbuffer, cpoutinfo)
@@ -295,7 +311,10 @@ func GetOutputData(poutbuffer *VoCodecBuffer, poutinfo *VoAudioOutputinfo) uint 
 }
 
 // SetParam - set the parameter for the specified param ID.
-func SetParam(uparamid int, pdata unsafe.Pointer) uint {
+func SetParam(handleID int, uparamid int, pdata unsafe.Pointer) uint {
+	handleMu.RLock()
+	handle := handleMap[handleID]
+	handleMu.RUnlock()
 	cuparamid := (C.VO_S32)(uparamid)
 	cpdata := (C.VO_PTR)(pdata)
 	ret := C.voAACEncSetParam(handle, cuparamid, cpdata)
@@ -305,7 +324,10 @@ func SetParam(uparamid int, pdata unsafe.Pointer) uint {
 }
 
 // GetParam - get the parameter for the specified param ID.
-func GetParam(uparamid int, pdata unsafe.Pointer) uint {
+func GetParam(handleID int, uparamid int, pdata unsafe.Pointer) uint {
+	handleMu.RLock()
+	handle := handleMap[handleID]
+	handleMu.RUnlock()
 	cuparamid := (C.VO_S32)(uparamid)
 	cpdata := (C.VO_PTR)(pdata)
 	ret := C.voAACEncGetParam(handle, cuparamid, cpdata)
@@ -315,9 +337,12 @@ func GetParam(uparamid int, pdata unsafe.Pointer) uint {
 }
 
 // Uninit - uninit the Codec.
-func Uninit() uint {
+func Uninit(handleID int) uint {
+	handleMu.Lock()
+	defer handleMu.Unlock()
+	handle := handleMap[handleID]
 	ret := C.voAACEncUninit(handle)
 	v := (uint)(ret)
-
+	delete(handleMap, handleID)
 	return v
 }
