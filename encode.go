@@ -28,7 +28,7 @@ type Options struct {
 
 // Encoder type.
 type Encoder struct {
-	handleID int
+	handle unsafe.Pointer
 }
 
 // NewEncoder returns new AAC encoder.
@@ -38,7 +38,7 @@ func NewEncoderV2(opts *Options) (*Encoder, error) {
 		opts.BitRate = 64000
 	}
 
-	handleID, ret := aacenc.Init(aacenc.VoAudioCodingAac)
+	handle, ret := aacenc.Init(aacenc.VoAudioCodingAac)
 	err := aacenc.ErrorFromResult(ret)
 	if err != nil {
 		return nil, fmt.Errorf("aac: %w", err)
@@ -50,12 +50,12 @@ func NewEncoderV2(opts *Options) (*Encoder, error) {
 	params.NChannels = int16(opts.NumChannels)
 	params.AdtsUsed = 1
 
-	ret = aacenc.SetParam(handleID, aacenc.VoPidAacEncparam, unsafe.Pointer(&params))
+	ret = aacenc.SetParam(handle, aacenc.VoPidAacEncparam, unsafe.Pointer(&params))
 	err = aacenc.ErrorFromResult(ret)
 	if err != nil {
 		return nil, fmt.Errorf("aac: %w", err)
 	}
-	e.handleID = handleID
+	e.handle = unsafe.Pointer(handle)
 	return e, nil
 }
 
@@ -70,7 +70,7 @@ func (e *Encoder) EncodeOneFrame(inbuf []byte) ([][]byte, error) {
 	}
 	defer C.free(input.Buffer)
 	input.Length = uint64(len(inbuf))
-	ret := aacenc.SetInputData(e.handleID, &input)
+	ret := aacenc.SetInputData(e.handle, &input)
 	err := aacenc.ErrorFromResult(ret)
 	if err != nil {
 		return nil, fmt.Errorf("aac: %w", err)
@@ -84,7 +84,7 @@ func (e *Encoder) EncodeOneFrame(inbuf []byte) ([][]byte, error) {
 	defer C.free(output.Buffer)
 	for {
 		output.Length = bufferSize
-		ret = aacenc.GetOutputData(e.handleID, &output, &outinfo)
+		ret = aacenc.GetOutputData(e.handle, &output, &outinfo)
 		err = aacenc.ErrorFromResult(ret)
 		if err != nil {
 			if !errors.Is(err, aacenc.ErrInputBufferSmall) {
@@ -102,6 +102,6 @@ func (e *Encoder) EncodeOneFrame(inbuf []byte) ([][]byte, error) {
 
 // Close closes encoder.
 func (e *Encoder) Close() error {
-	ret := aacenc.Uninit(e.handleID)
+	ret := aacenc.Uninit(e.handle)
 	return aacenc.ErrorFromResult(ret)
 }
