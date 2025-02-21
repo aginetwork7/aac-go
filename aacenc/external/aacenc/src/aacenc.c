@@ -316,6 +316,28 @@ VO_U32 VO_API voAACEncUninit(VO_HANDLE hCodec)
 */
 VO_U32 VO_API voAACEncSetParam(VO_HANDLE hCodec, VO_S32 uParamID, VO_PTR pData)
 {
+#ifdef ARM_INASM
+    printf( "ARM_INASM\n");
+#endif
+
+#ifdef ARMV6_INASM
+	printf( "ARMV6_INASM %d\n", ARMV6_INASM);
+#endif
+
+#ifdef ARMV5_INASM
+	printf( "ARMV5_INASM %d\n", ARMV5_INASM);
+#endif
+
+#ifdef ARMV4_INASM
+	printf( "ARMV4_INASM %d\n", ARMV4_INASM);
+#endif
+
+#ifdef ARMV5E
+	printf( "ARMV5E\n");
+#endif
+#ifdef ARMV7Neon
+	printf( "ARMV7Neon\n");
+#endif
 	AACENC_CONFIG config;
 	AACENC_PARAM* pAAC_param;
 	VO_AUDIO_FORMAT *pWAV_Format;

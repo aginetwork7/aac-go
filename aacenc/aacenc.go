@@ -1,3 +1,5 @@
+//go:build !ignore
+
 // Package aacenc implements cgo bindings for VisualOn AAC encoder library.
 package aacenc
 
@@ -149,6 +151,8 @@ const (
 	VoInputStream
 )
 
+type VoHandle C.VO_HANDLE
+
 // VoAudioFormat - general audio format info.
 type VoAudioFormat struct {
 	// Sample rate
@@ -205,8 +209,6 @@ type Param struct {
 	// Whether write adts header
 	AdtsUsed int16
 }
-
-var handle C.VO_HANDLE
 
 // Errors.
 var (
@@ -265,57 +267,56 @@ func ErrorFromResult(r uint) error {
 }
 
 // Init - init the audio codec module and return codec handle.
-func Init(vtype int32) uint {
+func Init(vtype int32) (VoHandle, uint) {
 	cvtype := (C.VO_AUDIO_CODINGTYPE)(vtype)
+	var handle C.VO_HANDLE
 	ret := C.voAACEncInit(&handle, cvtype, nil)
 	v := (uint)(ret)
-
-	return v
+	return VoHandle(handle), v
 }
 
 // SetInputData - set input audio data.
-func SetInputData(pinput *VoCodecBuffer) uint {
+func SetInputData(handle VoHandle, pinput *VoCodecBuffer) uint {
 	cpinput := pinput.cptr()
-	ret := C.voAACEncSetInputData(handle, cpinput)
+	ret := C.voAACEncSetInputData(C.VO_HANDLE(handle), cpinput)
 	v := (uint)(ret)
 
 	return v
 }
 
 // GetOutputData - get the outut audio data.
-func GetOutputData(poutbuffer *VoCodecBuffer, poutinfo *VoAudioOutputinfo) uint {
+func GetOutputData(handle VoHandle, poutbuffer *VoCodecBuffer, poutinfo *VoAudioOutputinfo) uint {
 	cpoutbuffer := poutbuffer.cptr()
 	cpoutinfo := poutinfo.cptr()
-	ret := C.voAACEncGetOutputData(handle, cpoutbuffer, cpoutinfo)
+	ret := C.voAACEncGetOutputData(C.VO_HANDLE(handle), cpoutbuffer, cpoutinfo)
 	v := (uint)(ret)
 
 	return v
 }
 
 // SetParam - set the parameter for the specified param ID.
-func SetParam(uparamid int, pdata unsafe.Pointer) uint {
+func SetParam(handle VoHandle, uparamid int, pdata unsafe.Pointer) uint {
 	cuparamid := (C.VO_S32)(uparamid)
 	cpdata := (C.VO_PTR)(pdata)
-	ret := C.voAACEncSetParam(handle, cuparamid, cpdata)
+	ret := C.voAACEncSetParam(C.VO_HANDLE(handle), cuparamid, cpdata)
 	v := (uint)(ret)
 
 	return v
 }
 
 // GetParam - get the parameter for the specified param ID.
-func GetParam(uparamid int, pdata unsafe.Pointer) uint {
+func GetParam(handle VoHandle, uparamid int, pdata unsafe.Pointer) uint {
 	cuparamid := (C.VO_S32)(uparamid)
 	cpdata := (C.VO_PTR)(pdata)
-	ret := C.voAACEncGetParam(handle, cuparamid, cpdata)
+	ret := C.voAACEncGetParam(C.VO_HANDLE(handle), cuparamid, cpdata)
 	v := (uint)(ret)
 
 	return v
 }
 
 // Uninit - uninit the Codec.
-func Uninit() uint {
-	ret := C.voAACEncUninit(handle)
+func Uninit(handle VoHandle) uint {
+	ret := C.voAACEncUninit(C.VO_HANDLE(handle))
 	v := (uint)(ret)
-
 	return v
 }

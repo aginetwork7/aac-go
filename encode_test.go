@@ -1,3 +1,5 @@
+//go:build !ignore
+
 package aac_test
 
 import (
@@ -28,14 +30,17 @@ func TestEncode(t *testing.T) {
 	opts.SampleRate = int(f.SampleRate)
 	opts.NumChannels = int(f.NumChannels)
 
-	enc, err := aac.NewEncoder(buf, opts)
+	enc, err := aac.NewEncoderV2(opts)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = enc.Encode(wr)
+	data, err := enc.EncodeOneFrame(buf.Bytes())
 	if err != nil {
 		t.Error(err)
+	}
+	for _, frame := range data {
+		buf.Write(frame)
 	}
 
 	err = enc.Close()
