@@ -28,7 +28,7 @@ type Options struct {
 
 // Encoder type.
 type Encoder struct {
-	handle unsafe.Pointer
+	handle aacenc.VoHandle
 }
 
 // NewEncoder returns new AAC encoder.
@@ -49,7 +49,7 @@ func NewEncoderV2(opts *Options) (*Encoder, error) {
 	params.BitRate = int32(opts.BitRate)
 	params.NChannels = int16(opts.NumChannels)
 	params.AdtsUsed = 1
-	e.handle = unsafe.Pointer(handle)
+	e.handle = handle
 
 	ret = aacenc.SetParam(handle, aacenc.VoPidAacEncparam, unsafe.Pointer(&params))
 	err = aacenc.ErrorFromResult(ret)
