@@ -49,13 +49,14 @@ func NewEncoderV2(opts *Options) (*Encoder, error) {
 	params.BitRate = int32(opts.BitRate)
 	params.NChannels = int16(opts.NumChannels)
 	params.AdtsUsed = 1
+	e.handle = unsafe.Pointer(handle)
 
 	ret = aacenc.SetParam(handle, aacenc.VoPidAacEncparam, unsafe.Pointer(&params))
 	err = aacenc.ErrorFromResult(ret)
 	if err != nil {
+		e.Close()
 		return nil, fmt.Errorf("aac: %w", err)
 	}
-	e.handle = unsafe.Pointer(handle)
 	return e, nil
 }
 
