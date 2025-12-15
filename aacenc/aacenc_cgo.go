@@ -1,10 +1,20 @@
 //go:build !ignore
 
+// Package aacenc provides AAC encoder functionality.
+// This file contains platform-specific CGO configurations to ensure
+// proper compilation and execution across different architectures.
+//
+// Issue fix: Removed ARMV7Neon flag and -mfpu=neon compiler option 
+// for ARM platforms to prevent segmentation faults on ARMv7HF systems
+// like Axis Artpec-7 SoC. These optimizations were causing memory alignment
+// issues and incompatible instruction execution on certain ARM variants.
 package aacenc
 
 /*
-#cgo linux,arm CFLAGS: -std=gnu99 -Iexternal/aacenc/include -DUSE_DEFAULT_MEM -DARMV5E -DARMV7Neon -DARM_INASM -DARMV5_INASM -DARMV6_INASM -march=armv7-a -mthumb-interwork -mfloat-abi=hard -mfpu=neon -Wall -D__ARM_ARCH_7A__
-#cgo linux,arm LDFLAGS: -mfloat-abi=hard -mfpu=neon -L. -l:AutoCorrelation_v5.o -l:CalcWindowEnergy_v5.o -l:band_nrg_v5.o -l:PrePostMDCT_v7.o -l:R4R8First_v7.o -l:Radix4FFT_v7.o
+#cgo linux,arm CFLAGS: -std=gnu99 -Iexternal/aacenc/include -DUSE_DEFAULT_MEM -DARMV5E -DARM_INASM -DARMV5_INASM -DARMV6_INASM -march=armv7-a -mthumb-interwork -mfloat-abi=hard -Wall -D__ARM_ARCH_7A__
+#cgo linux,arm LDFLAGS: -mfloat-abi=hard -L. -l:AutoCorrelation_v5.o -l:CalcWindowEnergy_v5.o -l:band_nrg_v5.o -l:PrePostMDCT_v7.o -l:R4R8First_v7.o -l:Radix4FFT_v7.o
+#cgo linux,armv7hf CFLAGS: -std=gnu99 -Iexternal/aacenc/include -DUSE_DEFAULT_MEM -DARMV5E -DARM_INASM -DARMV5_INASM -DARMV6_INASM -march=armv7-a -mthumb-interwork -mfloat-abi=hard -Wall -D__ARM_ARCH_7A__
+#cgo linux,armv7hf LDFLAGS: -mfloat-abi=hard -L. -l:AutoCorrelation_v5.o -l:CalcWindowEnergy_v5.o -l:band_nrg_v5.o -l:PrePostMDCT_v7.o -l:R4R8First_v7.o -l:Radix4FFT_v7.o
 #cgo linux,!arm CFLAGS: -std=gnu99 -Iexternal/aacenc/include -DUSE_DEFAULT_MEM -Wall
 #cgo darwin CFLAGS: -std=gnu99 -Iexternal/aacenc/include -DUSE_DEFAULT_MEM -Wall
 #include "external/aacenc/src/cmnMemory.c"
