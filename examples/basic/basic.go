@@ -6,7 +6,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/aginetwork7/aac-go"
+	"github.com/gen2brain/aac-go"
 	"github.com/youpy/go-wav"
 )
 

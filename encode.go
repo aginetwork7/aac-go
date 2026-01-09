@@ -10,7 +10,7 @@ import (
 	"io"
 	"unsafe"
 
-	"github.com/aginetwork7/aac-go/aacenc"
+	"github.com/gen2brain/aac-go/aacenc"
 )
 
 // Options represent encoding options.
