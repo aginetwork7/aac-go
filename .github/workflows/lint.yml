@@ -16,8 +16,7 @@ permissions:
 
 jobs:
   test:
-    runs-on:
-      group: ubuntu-latest
+    runs-on: ubuntu-latest
     steps:
       - name: print
         run: echo "This is a placeholder for linting steps. Please implement linting commands here."
