@@ -6,6 +6,7 @@
 package aac
 
 //#include <stdlib.h>
+//#include <string.h>
 import "C"
 
 import (
@@ -28,11 +29,20 @@ type Options struct {
 
 // Encoder type.
 type Encoder struct {
-	handle aacenc.VoHandle
+	handle   aacenc.VoHandle
+	inputBuf unsafe.Pointer
+	inputCap int
+	outBuf   unsafe.Pointer
+	outCap   int
+	closed   bool
 }
 
 // NewEncoder returns new AAC encoder.
 func NewEncoderV2(opts *Options) (*Encoder, error) {
+	if opts == nil {
+		return nil, fmt.Errorf("aac: options is nil")
+	}
+
 	e := &Encoder{}
 	if opts.BitRate == 0 {
 		opts.BitRate = 64000
@@ -62,14 +72,26 @@ func NewEncoderV2(opts *Options) (*Encoder, error) {
 
 // Encode encodes data from inbuf.
 func (e *Encoder) EncodeOneFrame(inbuf []byte) ([][]byte, error) {
+	if e == nil {
+		return nil, fmt.Errorf("aac: encoder is nil")
+	}
+	if e.closed {
+		return nil, fmt.Errorf("aac: encoder is closed")
+	}
 	var outinfo aacenc.VoAudioOutputinfo
 	var input, output aacenc.VoCodecBuffer
 
-	input.Buffer = C.CBytes(inbuf)
+	if err := e.ensureInputBuffer(len(inbuf)); err != nil {
+		return nil, err
+	}
+	if len(inbuf) > 0 {
+		inSlice := unsafe.Slice((*byte)(e.inputBuf), len(inbuf))
+		copy(inSlice, inbuf)
+	}
+	input.Buffer = e.inputBuf
 	if input.Buffer == nil {
 		return nil, fmt.Errorf("aac: memory allocation failed")
 	}
-	defer C.free(input.Buffer)
 	input.Length = uint64(len(inbuf))
 	ret := aacenc.SetInputData(e.handle, &input)
 	err := aacenc.ErrorFromResult(ret)
@@ -78,13 +100,15 @@ func (e *Encoder) EncodeOneFrame(inbuf []byte) ([][]byte, error) {
 	}
 	const bufferSize = 20480
 	var outDataList [][]byte
-	output.Buffer = C.malloc(C.size_t(bufferSize))
+	if err := e.ensureOutputBuffer(bufferSize); err != nil {
+		return nil, err
+	}
+	output.Buffer = e.outBuf
 	if output.Buffer == nil {
 		return nil, fmt.Errorf("aac: memory allocation failed")
 	}
-	defer C.free(output.Buffer)
 	for {
-		output.Length = bufferSize
+		output.Length = uint64(e.outCap)
 		ret = aacenc.GetOutputData(e.handle, &output, &outinfo)
 		err = aacenc.ErrorFromResult(ret)
 		if err != nil {
@@ -101,8 +125,75 @@ func (e *Encoder) EncodeOneFrame(inbuf []byte) ([][]byte, error) {
 	return outDataList, nil
 }
 
+func (e *Encoder) ensureInputBuffer(size int) error {
+	if e.inputCap >= size && e.inputBuf != nil {
+		return nil
+	}
+
+	if e.inputBuf != nil {
+		C.free(e.inputBuf)
+		e.inputBuf = nil
+		e.inputCap = 0
+	}
+
+	allocSize := size
+	if allocSize == 0 {
+		allocSize = 1
+	}
+
+	e.inputBuf = C.malloc(C.size_t(allocSize))
+	if e.inputBuf == nil {
+		return fmt.Errorf("aac: memory allocation failed")
+	}
+	e.inputCap = size
+
+	return nil
+}
+
+func (e *Encoder) ensureOutputBuffer(size int) error {
+	if e.outCap >= size && e.outBuf != nil {
+		return nil
+	}
+
+	if e.outBuf != nil {
+		C.free(e.outBuf)
+		e.outBuf = nil
+		e.outCap = 0
+	}
+
+	e.outBuf = C.malloc(C.size_t(size))
+	if e.outBuf == nil {
+		return fmt.Errorf("aac: memory allocation failed")
+	}
+	e.outCap = size
+
+	return nil
+}
+
 // Close closes encoder.
 func (e *Encoder) Close() error {
+	if e == nil || e.closed {
+		return nil
+	}
+	e.closed = true
+
+	if e.inputBuf != nil {
+		C.free(e.inputBuf)
+		e.inputBuf = nil
+		e.inputCap = 0
+	}
+
+	if e.outBuf != nil {
+		C.free(e.outBuf)
+		e.outBuf = nil
+		e.outCap = 0
+	}
+
+	if e.handle == nil {
+		return nil
+	}
+
 	ret := aacenc.Uninit(e.handle)
+	e.handle = nil
 	return aacenc.ErrorFromResult(ret)
 }

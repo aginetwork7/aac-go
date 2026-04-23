@@ -132,11 +132,14 @@ Word16 QCOutNew(QC_OUT *hQC, Word16 nChannels, VO_MEM_OPERATOR *pMemOP)
   scf = (Word16 *)mem_malloc(pMemOP, nChannels * MAX_GROUPED_SFB * sizeof(Word16), 32, VO_INDEX_ENC_AAC);
   if(NULL == scf)
   {
+	  mem_free(pMemOP, quantSpec, VO_INDEX_ENC_AAC);
 	  return 1;
   }
   maxValueInSfb = (UWord16 *)mem_malloc(pMemOP, nChannels * MAX_GROUPED_SFB * sizeof(UWord16), 32, VO_INDEX_ENC_AAC);
   if(NULL == maxValueInSfb)
   {
+	  mem_free(pMemOP, scf, VO_INDEX_ENC_AAC);
+	  mem_free(pMemOP, quantSpec, VO_INDEX_ENC_AAC);
 	  return 1;
   }
 

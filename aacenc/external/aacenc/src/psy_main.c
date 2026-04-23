@@ -91,12 +91,15 @@ Word16 PsyNew(PSY_KERNEL *hPsy, Word32 nChan, VO_MEM_OPERATOR *pMemOP)
   scratchTNS = (Word32 *)mem_malloc(pMemOP, nChan * FRAME_LEN_LONG * sizeof(Word32), 32, VO_INDEX_ENC_AAC);
   if(NULL == scratchTNS)
   {
+	  mem_free(pMemOP, mdctSpectrum, VO_INDEX_ENC_AAC);
 	  return 1;
   }
 
   mdctDelayBuffer = (Word16 *)mem_malloc(pMemOP, nChan * BLOCK_SWITCHING_OFFSET * sizeof(Word16), 32, VO_INDEX_ENC_AAC);
   if(NULL == mdctDelayBuffer)
   {
+	  mem_free(pMemOP, scratchTNS, VO_INDEX_ENC_AAC);
+	  mem_free(pMemOP, mdctSpectrum, VO_INDEX_ENC_AAC);
 	  return 1;
   }
 
