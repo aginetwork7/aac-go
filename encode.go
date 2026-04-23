@@ -12,6 +12,7 @@ import "C"
 import (
 	"errors"
 	"fmt"
+	"sync"
 	"unsafe"
 
 	"github.com/gen2brain/aac-go/aacenc"
@@ -35,6 +36,7 @@ type Encoder struct {
 	outBuf   unsafe.Pointer
 	outCap   int
 	closed   bool
+	mu       sync.Mutex
 }
 
 // NewEncoder returns new AAC encoder.
@@ -64,7 +66,7 @@ func NewEncoderV2(opts *Options) (*Encoder, error) {
 	ret = aacenc.SetParam(handle, aacenc.VoPidAacEncparam, unsafe.Pointer(&params))
 	err = aacenc.ErrorFromResult(ret)
 	if err != nil {
-		e.Close()
+		_ = e.Close()
 		return nil, fmt.Errorf("aac: %w", err)
 	}
 	return e, nil
@@ -75,8 +77,14 @@ func (e *Encoder) EncodeOneFrame(inbuf []byte) ([][]byte, error) {
 	if e == nil {
 		return nil, fmt.Errorf("aac: encoder is nil")
 	}
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
 	if e.closed {
 		return nil, fmt.Errorf("aac: encoder is closed")
+	}
+	if e.handle == nil {
+		return nil, fmt.Errorf("aac: encoder is uninitialized")
 	}
 	var outinfo aacenc.VoAudioOutputinfo
 	var input, output aacenc.VoCodecBuffer
@@ -172,10 +180,16 @@ func (e *Encoder) ensureOutputBuffer(size int) error {
 
 // Close closes encoder.
 func (e *Encoder) Close() error {
-	if e == nil || e.closed {
+	if e == nil {
 		return nil
 	}
-	e.closed = true
+
+	e.mu.Lock()
+	defer e.mu.Unlock()
+
+	if e.closed {
+		return nil
+	}
 
 	if e.inputBuf != nil {
 		C.free(e.inputBuf)
@@ -194,6 +208,13 @@ func (e *Encoder) Close() error {
 	}
 
 	ret := aacenc.Uninit(e.handle)
+	err := aacenc.ErrorFromResult(ret)
+	if err != nil {
+		return err
+	}
+
 	e.handle = nil
-	return aacenc.ErrorFromResult(ret)
+	e.closed = true
+
+	return nil
 }
