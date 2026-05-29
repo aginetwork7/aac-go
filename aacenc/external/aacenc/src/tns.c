@@ -140,19 +140,11 @@ Word16 InitTnsConfigurationLong(Word32 bitRate,          /*!< bitrate */
                                 Word16 active)              /*!< tns active flag */
 {
 
-  /*Word32 bitratePerChannel __unused;*/
-  Word32 bitratePerChannel;
+  UNUSED(bitRate);
+  UNUSED(channels);
   tC->maxOrder     = TNS_MAX_ORDER;
   tC->tnsStartFreq = 1275;
   tC->coefRes      = 4;
-
-  /* to avoid integer division */
-  if ( sub(channels,2) == 0 ) {
-    bitratePerChannel = bitRate >> 1;
-  }
-  else {
-    bitratePerChannel = bitRate;
-  }
 
   tC->tnsMaxSfb = tnsMaxBandsLongMainLow[pC->sampRateIdx];
 
@@ -207,19 +199,11 @@ Word16 InitTnsConfigurationShort(Word32 bitRate,              /*!< bitrate */
                                  PSY_CONFIGURATION_SHORT *pC, /*!< psy config struct */
                                  Word16 active)               /*!< tns active flag */
 {
-  /*Word32 bitratePerChannel __unused;*/
-  Word32 bitratePerChannel;
+  UNUSED(bitRate);
+  UNUSED(channels);
   tC->maxOrder     = TNS_MAX_ORDER_SHORT;
   tC->tnsStartFreq = 2750;
   tC->coefRes      = 3;
-
-  /* to avoid integer division */
-  if ( sub(channels,2) == 0 ) {
-    bitratePerChannel = L_shr(bitRate,1);
-  }
-  else {
-    bitratePerChannel = bitRate;
-  }
 
   tC->tnsMaxSfb = tnsMaxBandsShortMainLow[pC->sampRateIdx];
 
